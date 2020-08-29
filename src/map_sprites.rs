@@ -7,13 +7,13 @@ const MAP_TEXTURE_FILE_NAME_PREFIX: &str = "landscapeTiles_";
 const MAP_TEXTURE_FILE_NAME_LEN: usize = "landscapeTiles_000.png".len();
 
 #[derive(Default)]
-pub struct MapSpritesPlugin;
+pub struct MapTextureLoadingPlugin;
 
-impl Plugin for MapSpritesPlugin {
+impl Plugin for MapTextureLoadingPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<MapSprites>()
             .add_startup_system(setup.system())
-            .add_system(load_map_sprites.system());
+            .add_system(load_map_sprite_textures.system());
     }
 }
 
@@ -45,7 +45,7 @@ fn setup(mut map_sprite_handles: ResMut<MapSprites>, asset_server: Res<AssetServ
     map_sprite_handles.handles = Some(asset_server.load_asset_folder(MAP_TEXTURES_PATH).unwrap());
 }
 
-fn load_map_sprites(
+fn load_map_sprite_textures(
     mut map_sprites: ResMut<MapSprites>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,

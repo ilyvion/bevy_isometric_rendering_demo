@@ -1,9 +1,11 @@
-use crate::camera_movement::CameraMouseMovementPlugin;
+use crate::camera_movement::CameraMovementPlugin;
+use crate::map_loader::MapLoaderPlugin;
 use crate::map_render::MapRenderPlugin;
-use crate::map_sprites::MapSpritesPlugin;
+use crate::map_sprites::MapTextureLoadingPlugin;
 use bevy::prelude::*;
 
 mod camera_movement;
+mod map_loader;
 mod map_render;
 mod map_sprites;
 mod util;
@@ -13,37 +15,23 @@ fn main() {
         .add_default_plugins()
         .init_resource::<GameState>()
         .add_asset::<Map>()
-        .add_plugin(MapSpritesPlugin::default())
-        .add_plugin(CameraMouseMovementPlugin::default())
+        .add_plugin(MapLoaderPlugin::default())
+        .add_plugin(MapTextureLoadingPlugin::default())
         .add_plugin(MapRenderPlugin::default())
+        .add_plugin(CameraMovementPlugin::default())
         .add_startup_system(setup.system())
         .run();
 }
 
-fn setup(mut commands: Commands, mut maps: ResMut<Assets<Map>>, mut game_state: ResMut<GameState>) {
-    game_state.current_map = maps.add(Map {
-        width: 16,
-        height: 16,
-        #[rustfmt::skip]
-        tiles: vec![
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-            75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
-        ],
-    });
+fn setup(
+    mut commands: Commands,
+    mut maps: ResMut<Assets<Map>>,
+    mut game_state: ResMut<GameState>,
+    asset_server: Res<AssetServer>,
+) {
+    game_state.current_map = asset_server
+        .load_sync(&mut maps, "assets/maps/every.map")
+        .unwrap();
 
     commands.spawn(Camera2dComponents::default());
 }

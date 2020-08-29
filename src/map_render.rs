@@ -2,6 +2,7 @@ use crate::map_sprites::MapSprites;
 use crate::util::IsometricOperations;
 use crate::{GameState, Map};
 use bevy::prelude::*;
+use bevy::render::camera::Camera;
 
 #[derive(Default)]
 pub struct MapRenderPlugin;
@@ -24,7 +25,8 @@ fn render_map(
     map_sprites: Res<MapSprites>,
     game_state: Res<GameState>,
     mut map_render_data: ResMut<MapRenderData>,
-    mut query: Query<(&RenderedMap, Entity)>,
+    mut map_query: Query<(&RenderedMap, Entity)>,
+    mut camera_query: Query<(&Camera, &mut Translation)>,
 ) {
     if !map_sprites.is_ready() {
         return;
@@ -36,18 +38,20 @@ fn render_map(
     }
 
     // Despawn the old map render entity
-    for (_, entity) in &mut query.iter() {
+    for (_, entity) in &mut map_query.iter() {
         commands.despawn(entity);
     }
 
     // Create a new map render entity and generate all the associated map sprites
     // as children
     let map = maps.get(&game_state.current_map).unwrap();
+    let screen_x_max = (map.height as f32 * Vec2::MAP_TILE_WIDTH / 2.0)
+        + (map.width as f32 * Vec2::MAP_TILE_WIDTH / 2.0);
+    let screen_y_min = -(map.height as f32 * Vec2::MAP_TILE_HEIGHT / 2.0);
+    let screen_y_max = map.width as f32 * Vec2::MAP_TILE_HEIGHT / 2.0;
     commands
         .spawn((RenderedMap, Transform::default()))
         .with_children(|parent| {
-            let screen_y_min = -(map.height as f32 * Vec2::MAP_TILE_HEIGHT / 2.0);
-            let screen_y_max = map.width as f32 * Vec2::MAP_TILE_HEIGHT / 2.0;
             for map_x in 0..map.width as isize {
                 for map_y in (0..map.height as isize).rev() {
                     let map_position = Vec2::new(map_x as f32, map_y as f32);
@@ -85,4 +89,10 @@ fn render_map(
     // Update the render map handle so we don't re-render it until it next
     // changes
     map_render_data.0 = game_state.current_map;
+
+    // Center the camera on the loaded map
+    for (_, mut translation) in &mut camera_query.iter() {
+        *translation.x_mut() = screen_x_max / 2.0 - Vec2::MAP_TILE_WIDTH / 2.0;
+        *translation.y_mut() = (screen_y_max + screen_y_min) / 2.0 - Vec2::MAP_TILE_HEIGHT / 2.0;
+    }
 }

@@ -3,12 +3,12 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera;
 
 #[derive(Default)]
-pub struct CameraMouseMovementPlugin;
+pub struct CameraMovementPlugin;
 
-impl Plugin for CameraMouseMovementPlugin {
+impl Plugin for CameraMovementPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<CameraInputState>()
-            .add_system(camera_mouse_movement.system());
+            .add_system(camera_movement.system());
     }
 }
 
@@ -19,7 +19,7 @@ struct CameraInputState {
     right_mouse_button_down: bool,
 }
 
-fn camera_mouse_movement(
+fn camera_movement(
     mut camera_input_state: ResMut<CameraInputState>,
     keyboard_input: Res<Input<KeyCode>>,
     mouse_button_input: Res<Input<MouseButton>>,

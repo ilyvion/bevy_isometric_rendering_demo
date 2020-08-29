@@ -1,5 +1,5 @@
 [package]
-name = "bevy-test"
+name = "bevy_isometric_rendering_demo"
 version = "0.1.0"
 authors = ["Alexander Krivács Schrøder <alexschrod@gmail.com>"]
 edition = "2018"
@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy" }
+anyhow = "1.0"
 
 [profile.dev.package.bevy]
 opt-level = 3
