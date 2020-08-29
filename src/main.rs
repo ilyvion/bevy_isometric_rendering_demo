@@ -6,6 +6,7 @@ use bevy::prelude::*;
 mod camera_movement;
 mod map_render;
 mod map_sprites;
+mod util;
 
 fn main() {
     App::build()

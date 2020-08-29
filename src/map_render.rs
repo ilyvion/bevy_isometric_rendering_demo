@@ -1,9 +1,7 @@
 use crate::map_sprites::MapSprites;
+use crate::util::IsometricOperations;
 use crate::{GameState, Map};
 use bevy::prelude::*;
-
-const TILE_WIDTH: isize = 128;
-const TILE_HEIGHT: isize = 64;
 
 #[derive(Default)]
 pub struct MapRenderPlugin;
@@ -48,20 +46,20 @@ fn render_map(
     commands
         .spawn((RenderedMap, Transform::default()))
         .with_children(|parent| {
-            let screen_y_min = -(map.height as isize * TILE_HEIGHT / 2) as f32;
-            let screen_y_max = (map.width as isize * TILE_HEIGHT / 2) as f32;
+            let screen_y_min = -(map.height as f32 * Vec2::MAP_TILE_HEIGHT / 2.0);
+            let screen_y_max = map.width as f32 * Vec2::MAP_TILE_HEIGHT / 2.0;
             for map_x in 0..map.width as isize {
                 for map_y in (0..map.height as isize).rev() {
-                    // Translate map coordinates to screen coordinates
-                    let screen_x = ((map_y * TILE_WIDTH / 2) + (map_x * TILE_WIDTH / 2)) as f32;
-                    let screen_y = ((map_x * TILE_HEIGHT / 2) - (map_y * TILE_HEIGHT / 2)) as f32;
+                    let map_position = Vec2::new(map_x as f32, map_y as f32);
+                    let screen_position = map_position.to_isometric();
 
                     let tile = map.tiles[(map_y * map.width as isize + map_x) as usize];
 
                     // If a tile is taller than TILE_HEIGHT; it needs to be shifted up accordingly to
                     // be at the same baseline as a regular height tile.
-                    let excess_height =
-                        (map_sprites.tile_sprite_height(tile).y() - TILE_HEIGHT as f32).max(0.0);
+                    let excess_height = (map_sprites.tile_sprite_height(tile).y()
+                        - Vec2::MAP_TILE_HEIGHT as f32)
+                        .max(0.0);
 
                     parent.spawn(SpriteSheetComponents {
                         draw: Draw {
@@ -69,11 +67,14 @@ fn render_map(
                             ..Default::default()
                         },
                         translation: Translation(Vec3::new(
-                            screen_x,
-                            screen_y + excess_height / 2.,
-                            (screen_y_max - screen_y - screen_y_min) / screen_y_max,
+                            screen_position.x(),
+                            screen_position.y() + excess_height / 2.,
+                            (screen_y_max - screen_position.y() - screen_y_min) / screen_y_max,
                         )),
-                        sprite: TextureAtlasSprite::new(map_sprites.tile_sprite_index(tile)),
+                        sprite: TextureAtlasSprite {
+                            index: map_sprites.tile_sprite_index(tile),
+                            ..Default::default()
+                        },
                         texture_atlas: map_sprites.texture_atlas,
                         ..Default::default()
                     });
